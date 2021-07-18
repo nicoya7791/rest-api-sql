@@ -10,18 +10,30 @@ module.exports = (sequelize, DataTypes) => {
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
-    static associate(models) {
-      // define association here
-    }
+    // static associate(models) {
+    // define association here
+    // }
   };
+
   Course.init({
     title: DataTypes.STRING,
     description: DataTypes.TEXT,
     estimatedTime: DataTypes.STRING,
     materialsNeeded: DataTypes.STRING
   }, {
-    sequelize,
-    modelName: 'Course',
+    sequelize
   });
+
+  Course.associate = (models) => {
+    Course.belongsTo(models.User, {
+      foreignKey: {
+        fieldName: 'userId',
+        allowNull: false,
+      },
+    });
+  };
+
+
   return Course;
+
 };

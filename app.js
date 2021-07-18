@@ -3,6 +3,7 @@
 // load modules
 const express = require('express');
 const morgan = require('morgan');
+const routes = require('./routes');
 const { sequelize } = require('./models')
 
 // variable to enable global error logging
@@ -10,6 +11,8 @@ const enableGlobalErrorLogging = process.env.ENABLE_GLOBAL_ERROR_LOGGING === 'tr
 
 // create the Express app
 const app = express();
+app.use(express.json());
+app.use('/api', routes);
 
 // setup morgan which gives us http request logging
 app.use(morgan('dev'));
@@ -44,6 +47,7 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   if (enableGlobalErrorLogging) {
     console.error(`Global error handler: ${JSON.stringify(err.stack)}`);
+    console.log('there is a problem')
   }
 
   res.status(err.status || 500).json({
