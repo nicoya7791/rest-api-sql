@@ -23,7 +23,7 @@ function asyncHandler(cb) {
 };
 
 // =================================
-//  USER ROUTES
+//  USER ROUTES BEGIN
 // ==================================
 /**
  * @returns { user }. Authenticated user.
@@ -65,7 +65,13 @@ router.post('/users', asyncHandler(async (req, res) => {
 }));
 
 // =================================
-//  COURSES ROUTES
+//  USER ROUTES END
+// ==================================
+/**
+
+
+// =================================
+//  COURSES ROUTES BEGIN
 // ==================================
 
 
@@ -86,6 +92,16 @@ router.get('/courses', asyncHandler(async (req, res, next) => {
         next(error);
 
     }
+}));
+
+/**
+ *  Get indiviudal course by id to include the user. If id not found displays error.
+ */
+
+router.get('/courses/:id', asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const course = await Course.findByPk(id, { include: User });
+    course ? res.json(course) : res.status(404).json({ 'Error': `Course id: ${id} does not exist` });
 }));
 
 
