@@ -126,4 +126,17 @@ router.put('/courses/:id', asyncHandler(async (req, res) => {
     }
 }));
 
+/**
+ *  Delete course 
+ */
+router.delete('/courses/:id', asyncHandler(async (req, res) => {
+    const course = await Course.findByPk(req.params.id);
+    if (course) {
+        await course.destroy();
+        res.status(202).end();
+    } else {
+        res.status(404).json({ error: 'Course not found' })
+    }
+
+}));
 module.exports = router;
