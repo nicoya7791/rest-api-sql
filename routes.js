@@ -113,4 +113,17 @@ router.post('/courses', asyncHandler(async (req, res) => {
     course ? res.location(`/courses/${course.id}`).status(201).end() : res.status(400).json({ error: 'Something went wrong with your request!' });
 }));
 
+/**
+ *  Update course using request body
+ */
+router.put('/courses/:id', asyncHandler(async (req, res) => {
+    const course = await Course.findByPk(req.params.id);
+    if (course) {
+        await course.update(req.body);
+        res.status(204).end();
+    } else {
+        res.status(404).json({ error: 'Course not found' })
+    }
+}));
+
 module.exports = router;
