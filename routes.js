@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 const { Course, User } = require('./models');
 const { authenticateUser } = require('./middleware/auth-user');
+const { restart } = require('nodemon');
 
 
 /**
@@ -104,5 +105,12 @@ router.get('/courses/:id', asyncHandler(async (req, res) => {
     course ? res.json(course) : res.status(404).json({ 'Error': `Course id: ${id} does not exist` });
 }));
 
+/**
+ *  Create new course with request body then set location to new created course.
+ */
+router.post('/courses', asyncHandler(async (req, res) => {
+    const course = await Course.create(req.body);
+    course ? res.location(`/courses/${course.id}`).status(201).end() : res.status(400).json({ error: 'Something went wrong with your request!' });
+}));
 
 module.exports = router;
