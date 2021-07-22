@@ -27,7 +27,7 @@ function asyncHandler(cb) {
 //  USER ROUTES BEGIN
 // **********************************
 /**
- * @returns { user }. Authenticated user. currentUser Value is pass from authenticateUser middleware.
+ * @returns { user }. currentUser Value is pass from authenticateUser middleware.
  */
 router.get('/users', authenticateUser, asyncHandler(async (req, res) => {
     const user = req.currentUser;
@@ -51,9 +51,7 @@ router.post('/users', asyncHandler(async (req, res) => {
     try {
         await User.create(req.body);
         res.location('/')
-            .status(201)
-            .json({ "message": "User successfully created!" })
-            .end();
+            .status(201).end();
     } catch (error) {
         if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
             const errors = error.errors.map(err => err.message);
@@ -80,8 +78,10 @@ router.post('/users', asyncHandler(async (req, res) => {
  */
 router.get('/courses', asyncHandler(async (req, res, next) => {
     const courseData = await Course.findAll({
+        attributes: { exclude: ['createdAt', 'updatedAt'] },
         include: [{
             model: User,
+            attributes: { exclude: ['password', 'createdAt', 'updatedAt'] },
         }]
     });
     if (courseData) {
@@ -100,7 +100,13 @@ router.get('/courses', asyncHandler(async (req, res, next) => {
 
 router.get('/courses/:id', asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const course = await Course.findByPk(id, { include: User });
+    const course = await Course.findByPk(id, {
+        attributes: { exclude: ['createdAt', 'updatedAt'] },
+        include: [{
+            model: User,
+            attributes: { exclude: ['password', 'createdAt', 'updatedAt'] },
+        }]
+    });
     course ? res.json(course) : res.status(404).json({ 'Error': `Course id: ${id} does not exist` });
 }));
 
@@ -122,24 +128,21 @@ router.post('/courses', authenticateUser, asyncHandler(async (req, res) => {
  */
 router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res) => {
     const user = req.currentUser;
+    console.log('userid is :' + user.id);
     if (user) {
         const course = await Course.findByPk(req.params.id);
-        if (course.userId === user.id) {
+        console.log('course user id is:' + course.userId);
+        if (course.userId == user.id) {
+            req.body.userId = user.id;
             await course.update(req.body);
             res.status(204).end();
         } else {
-            res.status(403).json({ message: `You are not autorize to access course id: ${course.id}` });
+            res.status(403).json({ message: `You are not autorize  to access course id: ${course.id}` });
         }
     } else {
         res.status(401).json({ message: 'User does not exist' });
     }
 
-    if (course) {
-        await course.update(req.body);
-        res.status(204).end();
-    } else {
-        res.status(404).json({ error: 'Course not found' })
-    }
 }));
 
 /**
@@ -148,9 +151,9 @@ router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res) => {
 router.delete('/courses/:id', authenticateUser, asyncHandler(async (req, res) => {
     const user = req.currentUser;
     const course = await Course.findByPk(req.params.id);
-    if (course.id === user.id) {
+    if (course.userId == user.id) {
         await course.destroy();
-        res.status(202).end();
+        res.status(204).end();
     } else {
         res.status(403).json({ error: `You dont have access to course id: ${course.id}` })
     }
