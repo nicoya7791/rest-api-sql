@@ -8,7 +8,8 @@ const { User } = require('../models');
 /** Authenticate the request using Basic Authentication.
  *  email and password get assigned to credentials variable.
  *  find user with those credentials and compare to be a match
- *  if credential are a match with user info in database, assign user data to currentUser variable.
+ *  if credential are a match with user info in database, @returns {currentUser}
+ * * 
  */
 
 
