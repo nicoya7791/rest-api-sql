@@ -114,34 +114,56 @@ router.get('/courses/:id', asyncHandler(async (req, res) => {
  *  Create new course with request body then set location to new created course.
  */
 router.post('/courses', authenticateUser, asyncHandler(async (req, res) => {
-    const user = req.currentUser;
-    if (user) {
-        const course = await Course.create(req.body);
-        res.location(`/courses/${course.id}`).status(201).end();
-    } else {
-        res.status(400).json({ error: 'Something went wrong with your request!' });
+    try {
+        const user = req.currentUser;
+        if (user) {
+            const course = await Course.create(req.body);
+            res.location(`/courses/${course.id}`).status(201).end();
+        }
+    } catch (error) {
+        if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
+            const errors = error.errors.map(err => err.message);
+            res.status(400).json({ errors });
+        } else {
+            throw error;
+        }
     }
+
 }));
 
 /**
  *  Update course using request body
  */
 router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res) => {
-    const user = req.currentUser;
-    console.log('userid is :' + user.id);
-    if (user) {
-        const course = await Course.findByPk(req.params.id);
-        console.log('course user id is:' + course.userId);
-        if (course.userId == user.id) {
-            req.body.userId = user.id;
-            await course.update(req.body);
-            res.status(204).end();
+    try {
+        const user = req.currentUser;
+        if (user) {
+            const course = await Course.findByPk(req.params.id);
+            if (course) {
+                if (course.userId == user.id) {
+                    req.body.userId = user.id;
+                    await course.update(req.body);
+                    res.status(204).end();
+                } else {
+                    res.status(403).json({ message: `You are not autorize  to access course id: ${course.id}` });
+                }
+
+            } else {
+                res.status(404).json({ 'Error': `Course does not exist` });
+            }
         } else {
-            res.status(403).json({ message: `You are not autorize  to access course id: ${course.id}` });
+            res.status(401).json({ message: 'User does not exist' });
         }
-    } else {
-        res.status(401).json({ message: 'User does not exist' });
+
+    } catch (error) {
+        if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
+            const errors = error.errors.map(err => err.message);
+            res.status(400).json({ errors });
+        } else {
+            throw error;
+        }
     }
+
 
 }));
 
